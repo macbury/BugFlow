@@ -25,7 +25,7 @@ module BugFlow
     def initialize(exception, env, extra_params={})
       @exception = {
         :class_name => exception.class.to_s,
-        :message    => exception.message.gsub(/<(.+):(0x[0-9A-Z]+)>/i, $1),
+        :message    => exception.message,#.gsub(/<(.+):(0x[0-9A-Z]+)>/i, $1),
         :backtrace  => exception.backtrace,
         :timestamp  => Time.now
       }
