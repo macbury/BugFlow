@@ -2,8 +2,8 @@ require "eventmachine"
 require 'em-http'
 module BugFlow
 
-  def self.start!(config)
-    @config = config
+  def self.start!
+    @config = BugFlow.config
     log "Starting sync service.."
     if defined?(PhusionPassenger)
       log "Detected PhusionPassenger"
@@ -22,6 +22,7 @@ module BugFlow
     die_gracefully_on_signal
     loop_sync
   end
+
 
   def self.loop_sync
     log "Starting sync"
@@ -69,7 +70,6 @@ module BugFlow
   end
 
   def self.log_error(ex)
-    puts ex.to_s
     return if @config.logger.nil?
     if @config.logger.respond_to?(:error)
       @config.logger.error("BugFlow Error: #{ex.inspect}")
@@ -79,7 +79,6 @@ module BugFlow
   end
 
   def self.log(ex)
-    puts ex.to_s
     return if @config.logger.nil?
     if @config.logger.respond_to?(:info)
       @config.logger.info("BugFlow: #{ex.inspect}")

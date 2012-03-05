@@ -22,7 +22,7 @@ module BugFlow
     #   env          => Environment hash
     #   extra_params => Additional parameters
     # 
-    def initialize(exception, env, extra_params={})
+    def initialize(location, exception, env, extra_params={})
       @exception = {
         :class_name => exception.class.to_s,
         :message    => exception.message.gsub!(/<(.+):(0x[0-9A-Z]+)>/i, '\1'),
@@ -30,7 +30,9 @@ module BugFlow
         :timestamp  => Time.now
       }
       
-      if defined?(Rails)
+      if location && !location.empty?
+        @location = location
+      elsif defined?(Rails)
         @kontroller  = env['action_controller.instance'] || BugFlow::MissingController.new
         @location = [@kontroller.controller_name, @kontroller.action_name].compact.join("#")
         @location = "undefined" if @location.empty?
