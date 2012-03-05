@@ -76,6 +76,7 @@ module BugFlow
     elsif @config.logger.kind_of?(IO)
       @config.logger.puts("BugFlow Error: #{ex.inspect}")
     end
+    @config.logger.flush if @config.logger.respond_to?(:flush)
   end
 
   def self.log(ex)
@@ -85,5 +86,6 @@ module BugFlow
     elsif @config.logger.kind_of?(IO)
       @config.logger.puts("BugFlow: #{ex.inspect}")
     end
+    @config.logger.flush if @config.logger.respond_to?(:flush)
   end
 end
