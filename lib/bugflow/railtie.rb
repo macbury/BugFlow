@@ -3,7 +3,7 @@ if defined?(Rails)
 
   module BugFlow
     class Railtie < Rails::Railtie
-      initializer "cloud_monitor" do |app|
+      initializer "bugflow" do |app|
         app.config.middleware.use "BugFlow::Middleware"
       end
 

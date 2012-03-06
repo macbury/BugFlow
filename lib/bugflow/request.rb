@@ -1,45 +1,60 @@
 module BugFlow
-  module Request
-    TIMEOUT = 4
-    OPEN_TIMEOUT = 4
-    
-    CONTENT_TYPES = {
-      :form => 'application/x-www-form-urlencoded',
-      :json => 'application/json',
-      :yaml => 'application/x-yaml'
-    }.freeze
-    
-    def get(url, payload={}, format=:json)
-      request(:get, url, payload, format)
+  class Request
+    include BugFlow::Serializer
+    attr_accessor :crash, :env, :start_time, :end_time, :action, :controller, :params, :format, :method, :path, :views, :queries
+
+    def initialize(env)
+      self.env = clean_non_serializable_data(env)
+      self.start_time = Time.new
+      self.views = []
+      self.queries = []
     end
-    
-    def post(url, payload={}, format=:json)
-      request(:post, url, payload, format)
+
+    def exception=(new_exception)
+      return if new_exception.nil?
+      self.crash = BugFlow::Crash.new(new_exception)
     end
-    
-    def put(url, payload={}, format=:json)
-      request(:put, url, payload, format)
+
+    def location
+      [self.controller, self.action].join('#')
     end
-    
-    def delete(url, payload={}, format=:json)
-      request(:delete, url, payload, format)
+
+    def parse_payload(payload={})
+      self.controller = payload[:controller]
+      self.action     = payload[:action]
+      self.params     = payload[:params]
+      self.format     = payload[:format]
+      self.method     = payload[:method]
+      self.path       = payload[:path]
     end
-    
-    protected
-    
-    def request(method, url, payload, format, api_key)
-      payload[:api_key] = api_key
-      puts "URL: #{url}"
-      opts = {
-        :method       => method,
-        :url          => url,
-        :payload      => payload,
-        :headers      => {:content_type => CONTENT_TYPES[format]},
-        :timeout      => TIMEOUT,
-        :open_timeout => OPEN_TIMEOUT
+
+    def finish!
+      self.end_time = Time.now
+      BugFlow.push(self)
+    end
+
+    def request_time
+      self.end_time - self.start_time
+    end
+
+    def to_hash
+      out = {
+        :environment => self.env,
+        :location    => self.location,
+        :controller  => self.controller,
+        :action      => self.action,
+        :params      => self.params,
+        :format      => self.format,
+        :method      => self.method,
+        :path        => self.path,
+        :request_time => self.request_time,
+        :start_time  => self.start_time,
+        :views       => self.views.map(&:to_hash),
+        :queries     => self.queries.map(&:to_hash),
       }
-      
-      RestClient::Request.execute(opts)
+
+      out[:crash] = self.crash.to_hash if self.crash
+      out
     end
   end
 end
