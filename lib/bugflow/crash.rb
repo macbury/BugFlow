@@ -1,21 +1,29 @@
+require 'multi_json'
+require 'yaml'
 
 module BugFlow
+
   class Crash
-    def initialize(location, exception=nil, env={})
-      unless config.kind_of?(BugFlow::Configuration)
-        raise ArgumentError, "BugFlow::Configuration required!"
-      end
-      
-      raise ArgumentError, "Exception required!" if exception.nil?
-      raise ArgumentError, "Environment required!" if env.nil?
-      
-      @config = Bugflow.config
-      @payload = BugFlow::Payload.new(location, exception, env, @config.extra_params)
-      BugFlow.push(self) unless @config.ignore_exception?(exception.class.to_s)
+    include BugFlow::Serializer
+    
+    attr_reader :exception
+    attr_reader :environment
+
+
+    def initialize(exception)
+      @exception = {
+        :class_name => exception.class.to_s,
+        :message    => exception.message,
+        :backtrace  => exception.backtrace,
+      }
     end
     
-    def payload
-      @payload
+    def to_hash
+      {
+        :exception   => @exception,
+        :environment => @environment
+      }
     end
+
   end
 end

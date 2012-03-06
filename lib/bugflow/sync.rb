@@ -27,18 +27,21 @@ module BugFlow
   def self.loop_sync
     log "Starting sync"
     EM.next_tick do
-      log "Started!"
-      EventMachine::add_periodic_timer( 5 ) { BugFlow.sync! }
+      log "Started loop"
+      EventMachine::add_periodic_timer( BugFlow.config.sync_time ) { BugFlow.sync! }
     end
   end
 
   def self.sync!
     return if BugFlow.list.empty?
-    crashes = BugFlow.list[0..100]
-    log "Sending #{crashes.size} crashes"
+    sync_list = BugFlow.list[0..100]
+    log "Sending #{sync_list.size} requests"
     @list = []
-    request_crashes = crashes.map { |crash| crash.payload.to_hash }
-    http = EventMachine::HttpRequest.new(@config.url).post(:body => {:crashes => request_crashes.to_yaml, :api_key => @config.api_key})
+    request_sync_list = sync_list.map(&:to_hash)
+    log "Compressing requests"
+    data = Zlib::Deflate.deflate(sync_list.to_yaml,Zlib::BEST_SPEED)
+    log "Streaming requests..."
+    http = EventMachine::HttpRequest.new(@config.url).post(:body => {:data => data, :api_key => @config.api_key})
     http.callback do
       if http.response_header.status == 200
         log "Pushed #{crashes.size} crashes to #{@config.url} with status #{http.response_header.status}"
@@ -83,6 +86,16 @@ module BugFlow
     return if @config.logger.nil?
     if @config.logger.respond_to?(:info)
       @config.logger.info("BugFlow: #{ex.inspect}")
+    elsif @config.logger.kind_of?(IO)
+      @config.logger.puts("BugFlow: #{ex.inspect}")
+    end
+    @config.logger.flush if @config.logger.respond_to?(:flush)
+  end
+
+  def self.debug(ex)
+    return if @config.logger.nil?
+    if @config.logger.respond_to?(:info)
+      @config.logger.debug("BugFlow: #{ex.inspect}")
     elsif @config.logger.kind_of?(IO)
       @config.logger.puts("BugFlow: #{ex.inspect}")
     end

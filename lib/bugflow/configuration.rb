@@ -14,6 +14,7 @@ module BugFlow
     attr_reader :format
     attr_reader :logger
     attr_reader :api_key
+    attr_reader :sync_time
     
     # Initialize configuration. Options:
     #   :url    => Target url (required)
@@ -30,6 +31,7 @@ module BugFlow
       @extra_params = options[:params].kind_of?(Hash) ? options[:params] : {}
       @logger       = options[:logger]
       @api_key      = options[:api_key]
+      @sync_time    = options[:sync_time] || 60
 
       raise BugFlow::ConfigurationError, ":api_key is required!" unless @api_key
 

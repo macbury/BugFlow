@@ -15,7 +15,7 @@ if defined?(Delayed)
           "job.locked_by" => job.locked_by,
           "job.id" => job.id
         }
-        BugFlow.notify("DelayedJob", error, env)
+        #BugFlow.notify("DelayedJob", error, env)
       rescue Exception => e
         puts "BugFlow failed: #{e.class.name}: #{e.message}"
         e.backtrace.each do |f|
