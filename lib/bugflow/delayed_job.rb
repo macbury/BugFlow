@@ -7,7 +7,7 @@ if defined?(Delayed)
         env = {
           "job.name" => job.name,
           "job.attempts" => job.attempts,
-          "job.priority" => job.priority
+          "job.priority" => job.priority,
           "job.priority" => job.run_at,
           "job.queue" => job.queue,
           "job.failed_at" => job.failed_at,

@@ -8,6 +8,7 @@ require 'bugflow/serializer'
 require 'bugflow/payload'
 require 'bugflow/crash'
 require 'bugflow/delayed_job'
+require 'bugflow/railtie'
 module BugFlow
   # Set global configuration
   # 

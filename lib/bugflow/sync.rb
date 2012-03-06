@@ -35,13 +35,19 @@ module BugFlow
   def self.sync!
     return if BugFlow.list.empty?
     crashes = BugFlow.list[0..100]
-    log "Sending #{crashes.size} crashes"
+    url = BugFlow.config.url
+    log "Sending #{crashes.size} crashes to #{url}"
     @list = []
     request_crashes = crashes.map { |crash| crash.payload.to_hash }
-    http = EventMachine::HttpRequest.new(@config.url).post(:body => {:crashes => request_crashes.to_yaml, :api_key => @config.api_key})
+    http = EventMachine::HttpRequest.new(url).post(
+      :body => { :crashes => request_crashes.to_yaml, :api_key => BugFlow.config.api_key },
+      :connect_timeout => 3,
+      :inactivity_timeout => 5,
+      :redirects => 3
+    )
     http.callback do
       if http.response_header.status == 200
-        log "Pushed #{crashes.size} crashes to #{@config.url} with status #{http.response_header.status}"
+        log "Pushed #{crashes.size} crashes to #{url} with status #{http.response_header.status}"
       else
         log_error("BugFlow server error!")
         @list << crashes
@@ -70,6 +76,7 @@ module BugFlow
   end
 
   def self.log_error(ex)
+    @config = BugFlow.config
     return if @config.logger.nil?
     if @config.logger.respond_to?(:error)
       @config.logger.error("BugFlow Error: #{ex.inspect}")
@@ -80,6 +87,7 @@ module BugFlow
   end
 
   def self.log(ex)
+    @config = BugFlow.config
     return if @config.logger.nil?
     if @config.logger.respond_to?(:info)
       @config.logger.info("BugFlow: #{ex.inspect}")
