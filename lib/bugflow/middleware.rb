@@ -35,7 +35,7 @@ module BugFlow
       Net::HTTP.class_eval do
         def request_with_bugflow(*args, &block)
           resp = nil
-          ActiveSupport::Notifications.instrument("http.request", :search => search) do |payload|
+          ActiveSupport::Notifications.instrument("http.request") do |payload|
             resp = request_without_bugflow(*args, &block)
             payload = { :host => @address }
           end
