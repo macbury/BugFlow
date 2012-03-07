@@ -5,9 +5,10 @@ module BugFlow
       @app = app
       bind_notifications
     end
-    
+
     def bind_notifications
       ActiveSupport::Notifications.subscribe /start_processing.action_controller/ do |name, start, finish, id, payload|
+        @request_monitor ||= BugFlow::Request.new
         @request_monitor.parse_payload(payload)
       end
 
@@ -24,7 +25,8 @@ module BugFlow
     end
 
     def call(env)
-      @request_monitor = BugFlow::Request.new(env)
+      @request_monitor ||= BugFlow::Request.new
+      @request_monitor.env = env
       begin
         @app.call(env)
       rescue Exception => e

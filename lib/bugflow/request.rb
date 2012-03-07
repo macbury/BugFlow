@@ -1,13 +1,20 @@
 module BugFlow
   class Request
     include BugFlow::Serializer
-    attr_accessor :crash, :env, :start_time, :end_time, :action, :controller, :params, :format, :method, :path, :views, :queries
+    attr_accessor :crash, :start_time, :end_time, :action, :controller, :params, :format, :method, :path, :views, :queries
 
-    def initialize(env)
-      self.env = clean_non_serializable_data(env)
+    def initialize
       self.start_time = Time.new
       self.views = []
       self.queries = []
+    end
+
+    def env=(new_env)
+      @env = clean_non_serializable_data(env)
+    end
+    
+    def env
+      @env
     end
 
     def exception=(new_exception)
