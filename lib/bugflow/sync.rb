@@ -7,11 +7,12 @@ module BugFlow
 
   def self.start!
     @config = BugFlow.config
-    log "Starting sync service.."
+    log "Starting sync service under #{$$} pid"
     if defined?(PhusionPassenger)
       log "Detected PhusionPassenger"
       PhusionPassenger.on_event(:starting_worker_process) do |forked|
         if forked && EM.reactor_running?
+          log "Process forked: #{$$}"
           EM.stop
         end
         Thread.new { EM.run }
@@ -61,8 +62,8 @@ module BugFlow
         log "Pushed #{crashes.size} crashes to #{BugFlow.config.url} with status #{http.response_header.status}"
       else
         log_error("BugFlow internal server error!")
-        BugFlow.list << crashes
-        BugFlow.list.flatten!
+        #BugFlow.list << crashes
+        #BugFlow.list.flatten!
       end
     end
     http.errback do 
