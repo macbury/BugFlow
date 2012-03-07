@@ -30,7 +30,7 @@ module BugFlow
         @app.call(env)
       rescue Exception => e
         @request_monitor.exception = e
-        throw e
+        raise
       end
     end
   end
