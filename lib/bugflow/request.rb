@@ -1,12 +1,13 @@
 module BugFlow
   class Request
     include BugFlow::Serializer
-    attr_accessor :crash, :start_time, :end_time, :action, :controller, :params, :format, :method, :path, :views, :queries, :cpu, :ram
+    attr_accessor :crash, :start_time, :end_time, :action, :controller, :params, :format, :method, :path, :views, :queries, :cpu, :ram, :services
 
     def initialize
       self.start_time = Time.new
       self.views = []
       self.queries = []
+      self.services = []
     end
 
     def env=(new_env)
@@ -60,6 +61,7 @@ module BugFlow
         :start_time  => self.start_time,
         :views       => self.views.map(&:to_hash),
         :queries     => self.queries.map(&:to_hash),
+        :services    => self.services.map(&:to_hash),
         :environment => self.env
       }
 
