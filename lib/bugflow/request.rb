@@ -10,9 +10,9 @@ module BugFlow
     end
 
     def env=(new_env)
-      @env = clean_non_serializable_data(env)
+      @env = new_env ? clean_non_serializable_data(new_env) : {}
     end
-    
+
     def env
       @env
     end

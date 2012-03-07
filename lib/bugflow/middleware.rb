@@ -26,7 +26,7 @@ module BugFlow
 
     def call(env)
       @request_monitor = BugFlow::Request.new
-      @request_monitor.env = env
+      #@request_monitor.env = env
       begin
         @app.call(env)
       rescue Exception => e
