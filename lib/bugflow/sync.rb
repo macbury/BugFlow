@@ -51,8 +51,9 @@ module BugFlow
     data = BugFlow.list.map(&:to_hash).to_yaml
     @list = []
     log "Streaming requests..."
-    http = EventMachine::HttpRequest.new(BugFlow.config.url).post(
-      :body => { :data => data, :api_key => BugFlow.config.api_key },
+    url = File.join(BugFlow.config.url, BugFlow::API_VERSION)
+    http = EventMachine::HttpRequest.new(url).post(
+      :body => { :data => data, :api_key => BugFlow.config.api_key, :app_time => Time.new },
       :connect_timeout => 3,
       :inactivity_timeout => 5,
       :redirects => 3
