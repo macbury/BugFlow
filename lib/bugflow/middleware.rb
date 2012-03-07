@@ -27,13 +27,11 @@ module BugFlow
       @request_monitor = BugFlow::Request.new
       @request_monitor.env = env
       begin
-        cpu = `ps -o %cpu #{$$}`.strip.gsub(/[^0-9\.]+/,"").to_f
-        mem = `ps -o rss= -p #{$$}`.to_i
-        BugFlow.debug "BEFORE(CPU/MEM): #{cpu}% #{mem} MB"
-        @app.call(env)
+        out = @app.call(env)
         cpu_after = `ps -o %cpu #{$$}`.strip.gsub(/[^0-9\.]+/,"").to_f
         mem_after = `ps -o rss= -p #{$$}`.to_i
         BugFlow.debug "AFTER(CPU/MEM): #{cpu_after}% #{mem_after} MB"
+        out
       rescue Exception => e
         @request_monitor.exception = e
         raise e
