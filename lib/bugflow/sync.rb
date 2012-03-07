@@ -11,8 +11,8 @@ module BugFlow
     if defined?(PhusionPassenger)
       log "Detected PhusionPassenger"
       PhusionPassenger.on_event(:starting_worker_process) do |forked|
+        log "Process forked: #{$$}"
         if forked && EM.reactor_running?
-          log "Process forked: #{$$}"
           EM.stop
         end
         Thread.new { EM.run }
