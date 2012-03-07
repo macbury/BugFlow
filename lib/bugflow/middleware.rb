@@ -20,13 +20,12 @@ module BugFlow
       end
       ActiveSupport::Notifications.subscribe "process_action.action_controller" do
         @request_monitor.finish!
-        @request_monitor = nil
       end
     end
 
     def call(env)
       @request_monitor = BugFlow::Request.new
-      #@request_monitor.env = env
+      @request_monitor.env = env
       begin
         @app.call(env)
       rescue Exception => e

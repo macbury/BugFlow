@@ -12,7 +12,7 @@ module BugFlow
     def to_hash
       {
         :start_time => self.start_time,
-        :render_time => self.render_time,
+        :query_time => self.query_time,
         :sql => self.sql,
         :name => self.name
       }
