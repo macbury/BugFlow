@@ -1,4 +1,4 @@
-if defined?(Delayed)
+if false && defined?(Delayed)
   Delayed::Worker.class_eval do
     def handle_failed_job_with_bugflow(job, error)
       handle_failed_job_without_bugflow(job, error)
