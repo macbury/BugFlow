@@ -29,11 +29,11 @@ module BugFlow
       begin
         cpu = `ps -o %cpu #{$$}`.strip.gsub(/[^0-9\.]+/,"").to_f
         mem = `ps -o rss= -p #{$$}`.to_i
-        Rails.logger.info "BEFORE(CPU/MEM): #{cpu}% #{mem} MB"
+        BugFlow.debug "BEFORE(CPU/MEM): #{cpu}% #{mem} MB"
         @app.call(env)
         cpu = `ps -o %cpu #{$$}`.strip.gsub(/[^0-9\.]+/,"").to_f
         mem = `ps -o rss= -p #{$$}`.to_i
-        Rails.logger.info "AFTER(CPU/MEM): #{cpu}% #{mem} MB"
+        BugFlow.debug "AFTER(CPU/MEM): #{cpu}% #{mem} MB"
       rescue Exception => e
         @request_monitor.exception = e
         raise
