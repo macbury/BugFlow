@@ -45,6 +45,7 @@ module BugFlow
 
   def self.sync!
     debug "Pipline: #{BugFlow.list.size}"
+    
     return if BugFlow.list.empty?
     log "Sending #{BugFlow.list.size} requests"
     debug BugFlow.list.map(&:to_hash).inspect
