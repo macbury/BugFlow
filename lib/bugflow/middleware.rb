@@ -18,8 +18,29 @@ module BugFlow
       ActiveSupport::Notifications.subscribe /!render_template.action_view/ do |name, start, finish, id, payload|
         @request_monitor.views << BugFlow::View.new(start, finish, payload) if @request_monitor
       end
+
+      ActiveSupport::Notifications.subscribe "http.request" do |name, start, finish, id, payload|
+        BugFlow.debug [name, start, finish, id, payload].inspect
+      end
+
       ActiveSupport::Notifications.subscribe "process_action.action_controller" do
         @request_monitor.finish!
+      end
+
+      bind_http_notifications
+    end
+
+    def bind_http_notifications
+      Net::HTTP.class_eval do
+        def request_with_bugflow(*args, &block)
+          resp = nil
+          ActiveSupport::Notifications.instrument("http.request", :search => search) do |payload|
+            resp = request_without_bugflow(*args, &block)
+            payload = { :host => @address }
+          end
+          resp
+        end 
+        alias_method_chain :request, :bugflow 
       end
     end
 
