@@ -47,6 +47,7 @@ module BugFlow
     debug "Pipline: #{BugFlow.list.size}"
     return if BugFlow.list.empty?
     log "Sending #{BugFlow.list.size} requests"
+    debug BugFlow.list.map(&:to_hash).inspect
     data = BugFlow.list.map(&:to_hash).to_yaml
     @list = []
     log "Streaming requests..."
@@ -81,8 +82,14 @@ module BugFlow
 
   def self.die_gracefully_on_signal
     log "Binding signal traps"
-    Signal.trap("INT")  { EM.stop }
-    Signal.trap("TERM") { EM.stop }
+    Signal.trap("INT")  { 
+      log "Recived INT signal for #{$$}"
+      EM.stop 
+    }
+    Signal.trap("TERM") { 
+      log "Recived TERM signal for #{$$}"
+      EM.stop 
+    }
   end
 
   def self.log_error(ex)
