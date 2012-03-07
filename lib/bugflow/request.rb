@@ -17,10 +17,6 @@ module BugFlow
       @env
     end
 
-    def gather_usage_data
-      self.cpu, self.ram = BugFlow.gather_performance_data
-    end
-
     def exception=(new_exception)
       return if new_exception.nil?
       self.crash = BugFlow::Crash.new(new_exception)
@@ -41,6 +37,7 @@ module BugFlow
 
     def finish!
       self.end_time = Time.now
+      self.cpu, self.ram = BugFlow.gather_performance_data
       BugFlow.push(self)
     end
 

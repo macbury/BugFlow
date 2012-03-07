@@ -28,7 +28,6 @@ module BugFlow
       @request_monitor.env = env
       begin
         out = @app.call(env)
-        @request_monitor.gather_usage_data
         out
       rescue Exception => e
         @request_monitor.exception = e
