@@ -5,6 +5,13 @@ module BugFlow
     @list ||= []
   end
 
+  def self.gather_performance_data
+    cpu = `ps -o %cpu #{$$}`.strip.gsub(/[^0-9\.]+/,"").to_f
+    ram = `ps -o rss= -p #{$$}`.to_i
+    BugFlow.debug "AFTER(CPU/MEM): #{cpu}% #{ram} MB"
+    [cpu, ram]
+  end
+
   def self.start!
     @config = BugFlow.config
     log "Starting sync service under #{$$} pid"

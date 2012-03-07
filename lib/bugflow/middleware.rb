@@ -28,9 +28,7 @@ module BugFlow
       @request_monitor.env = env
       begin
         out = @app.call(env)
-        cpu_after = `ps -o %cpu #{$$}`.strip.gsub(/[^0-9\.]+/,"").to_f
-        mem_after = `ps -o rss= -p #{$$}`.to_i
-        BugFlow.debug "AFTER(CPU/MEM): #{cpu_after}% #{mem_after} MB"
+        @request_monitor.gather_usage_data
         out
       rescue Exception => e
         @request_monitor.exception = e

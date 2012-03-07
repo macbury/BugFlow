@@ -1,7 +1,7 @@
 module BugFlow
   class Request
     include BugFlow::Serializer
-    attr_accessor :crash, :start_time, :end_time, :action, :controller, :params, :format, :method, :path, :views, :queries
+    attr_accessor :crash, :start_time, :end_time, :action, :controller, :params, :format, :method, :path, :views, :queries, :cpu, :ram
 
     def initialize
       self.start_time = Time.new
@@ -15,6 +15,10 @@ module BugFlow
 
     def env
       @env
+    end
+
+    def gather_usage_data
+      self.cpu, self.ram = BugFlow.gather_performance_data
     end
 
     def exception=(new_exception)
@@ -46,7 +50,8 @@ module BugFlow
 
     def to_hash
       out = {
-        :environment => self.env,
+        :cpu         => self.cpu,
+        :ram         => self.ram,
         :location    => self.location,
         :controller  => self.controller,
         :action      => self.action,
@@ -58,6 +63,7 @@ module BugFlow
         :start_time  => self.start_time,
         :views       => self.views.map(&:to_hash),
         :queries     => self.queries.map(&:to_hash),
+        :environment => self.env
       }
 
       out[:crash] = self.crash.to_hash if self.crash
