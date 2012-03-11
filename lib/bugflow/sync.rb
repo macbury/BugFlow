@@ -46,7 +46,7 @@ module BugFlow
 
   def self.connect!
     log "Connecting to ampq server..."
-    @connection = AMQP.connect :user => "bugflow", :pass => "test", :vhost => "/requests"
+    @connection = AMQP.connect :user => "guest", :pass => "guest", :vhost => "/"
     log "Binding channel"
     @channel = AMQP::Channel.new(@connection, :auto_recovery => true)
   end
