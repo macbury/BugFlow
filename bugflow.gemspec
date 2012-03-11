@@ -15,5 +15,5 @@ Gem::Specification.new do |gem|
   gem.require_paths = ['lib']
 
   gem.add_runtime_dependency 'eventmachine'
-  gem.add_runtime_dependency 'em-http-request'
+  gem.add_runtime_dependency 'amqp'
 end

@@ -1,5 +1,8 @@
 require "eventmachine"
 require 'em-http'
+require "zlib"
+require "base64"
+require "amqp"
 module BugFlow
   def self.list
     @list ||= []
@@ -30,23 +33,29 @@ module BugFlow
       log "Running normal"
       Thread.new { EM.run }
     end
+    sleep 0.5
     die_gracefully_on_signal
-    loop_sync
+    
+    begin
+      loop_sync
+    rescue Exception => e
+      log_error e.to_s
+      log_error e.backtrace.join("\n")
+    end
   end
 
+  def self.connect!
+    log "Connecting to ampq server..."
+    @connection = AMQP.connect :user => "bugflow", :pass => "test", :vhost => "/requests"
+    log "Binding channel"
+    @channel = AMQP::Channel.new(@connection, :auto_recovery => true)
+  end
 
   def self.loop_sync
     log "Starting sync"
     EM.next_tick do
+      connect!
       log "Started loop, sync every: #{BugFlow.config.sync_time} seconds!"
-      EventMachine::add_periodic_timer( BugFlow.config.sync_time ) do
-        begin
-          BugFlow.sync!
-        rescue Exception => e
-          log_error e.to_s
-          log_error e.backtrace.join("\n")
-        end
-      end
     end
   end
 
@@ -57,23 +66,24 @@ module BugFlow
     log "Sending #{BugFlow.list.size} requests"
     debug BugFlow.list.map(&:to_hash).inspect
     data = BugFlow.list.map(&:to_hash).to_yaml
+    compressed_data = Base64.strict_encode64(Zlib::Deflate.deflate(data, Zlib::BEST_COMPRESSION))
+
     @list = []
     log "Streaming requests..."
-    url = File.join(BugFlow.config.url, BugFlow::API_VERSION)
+    url = File.join(BugFlow.config.url, BugFlow::API_VERSION, "sync")
     http = EventMachine::HttpRequest.new(url).post(
-      :body => { :data => data, :api_key => BugFlow.config.api_key, :app_time => Time.new },
+      :body => { :data => compressed_data, :api_key => BugFlow.config.api_key, :app_time => Time.new },
       :connect_timeout => 3,
       :inactivity_timeout => 5,
       :redirects => 3
     )
     debug "Streaming method end awating callback"
     http.callback do
-      if http.response_header.status == 200
-        log "Pushed #{crashes.size} crashes to #{BugFlow.config.url} with status #{http.response_header.status}"
+      debug "Recived response: #{http.response_header.status}"
+      if http.response_header.status.to_i == 200
+        log "Pushed to #{url} with status #{http.response_header.status}"
       else
         log_error("BugFlow internal server error!")
-        #BugFlow.list << crashes
-        #BugFlow.list.flatten!
       end
     end
     http.errback do 
@@ -86,7 +96,8 @@ module BugFlow
 
   def self.push(request)
     log "Adding request on pipline"
-    self.list << request
+    #self.list << request
+    @channel.default_exchange.publish(request.to_hash.to_yaml, :routing_key => "requests.ruby")
   end
 
   def self.die_gracefully_on_signal
